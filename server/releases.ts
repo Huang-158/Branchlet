@@ -263,6 +263,10 @@ export class ReleasesService {
 
   clear(id: string) {
     this.repositories.get(id);
+    return this.forgetRepository(id);
+  }
+
+  forgetRepository(id: string) {
     this.credentials.delete(id);
     return { authenticated: false };
   }
@@ -508,5 +512,7 @@ export function createReleasesRouter(
     res.status(500).json({ error: 'Release 操作未完成，请刷新状态后重试。' });
   };
   router.use(errorHandler);
-  return router;
+  return Object.assign(router, {
+    forgetRepository: (id: string) => releases.forgetRepository(id),
+  });
 }

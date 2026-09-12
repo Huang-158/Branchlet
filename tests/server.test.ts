@@ -1,6 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, readFile, mkdir, rename, rm, access, chmod } from 'node:fs/promises';
+import {
+  mkdtemp,
+  writeFile,
+  readFile,
+  mkdir,
+  rename,
+  rm,
+  rmdir,
+  access,
+  chmod,
+} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import type { AddressInfo } from 'node:net';
@@ -86,6 +96,88 @@ test('real repository supports unborn unstage, commit, diff, rename and persiste
     const reopened = new GitService(service.dataDir, false);
     await reopened.initialize();
     assert.equal(reopened.list()[0].id, repo.id);
+  } finally {
+    await ctx.clean();
+  }
+});
+
+test('removing a repository persists across restarts, preserves files and allows reopening', async () => {
+  const ctx = await fixture();
+  try {
+    const { service, repo } = ctx;
+    await writeFile(path.join(repo.path, 'my-work.txt'), 'keep my work');
+    assert.deepEqual(await service.remove(repo.id), []);
+    assert.equal(await readFile(path.join(repo.path, 'my-work.txt'), 'utf8'), 'keep my work');
+    assert.equal((await runGit(repo.path, ['rev-parse', '--is-inside-work-tree'])).trim(), 'true');
+    await assert.rejects(
+      service.remove(repo.id),
+      (error: unknown) => error instanceof ApiError && error.status === 404,
+    );
+    const restarted = new GitService(service.dataDir, false);
+    await restarted.initialize();
+    assert.deepEqual(restarted.list(), []);
+    assert.equal((await restarted.open(repo.path)).id, repo.id);
+    assert.deepEqual(
+      JSON.parse(await readFile(path.join(service.dataDir, 'repos.json'), 'utf8')).map(
+        (saved: { id: string }) => saved.id,
+      ),
+      [repo.id],
+    );
+  } finally {
+    await ctx.clean();
+  }
+});
+
+test('failed registry writes restore the removed entry and leave the save queue usable', async () => {
+  const ctx = await fixture();
+  try {
+    const { service, repo } = ctx;
+    const registry = path.join(service.dataDir, 'repos.json'),
+      backup = path.join(service.dataDir, 'repos.backup.json');
+    await rename(registry, backup);
+    await mkdir(registry);
+    await assert.rejects(service.remove(repo.id));
+    assert.equal(service.get(repo.id).path, repo.path);
+    await rmdir(registry);
+    await rename(backup, registry);
+    assert.deepEqual(await service.remove(repo.id), []);
+    assert.deepEqual(JSON.parse(await readFile(registry, 'utf8')), []);
+  } finally {
+    await ctx.clean();
+  }
+});
+
+test('directory browsing exposes filesystem roots and resolves bare Windows drives to their roots', async () => {
+  const ctx = await fixture();
+  try {
+    const listing = await ctx.service.filesystem(ctx.temporary);
+    assert.ok(
+      listing.directories.some((entry) => entry.name === 'repository' && entry.isRepository),
+    );
+    assert.ok(
+      listing.roots.some(
+        (root) => root.path.toLowerCase() === path.parse(ctx.temporary).root.toLowerCase(),
+      ),
+    );
+    if (process.platform === 'win32') {
+      assert.ok(
+        listing.roots.some(
+          (root) => root.path.toLowerCase() === path.parse(process.cwd()).root.toLowerCase(),
+        ),
+      );
+      for (const drive of listing.roots) {
+        assert.match(drive.path, /^[A-Z]:\\$/);
+        const root = await ctx.service.filesystem(drive.path.slice(0, 2));
+        assert.equal(root.path, drive.path);
+        assert.equal(root.parent, null);
+      }
+    } else {
+      assert.deepEqual(listing.roots, [{ name: '文件系统', path: '/' }]);
+    }
+    await assert.rejects(
+      ctx.service.filesystem(path.join(ctx.temporary, 'missing-folder')),
+      /无法读取该目录/,
+    );
   } finally {
     await ctx.clean();
   }
@@ -443,8 +535,42 @@ test('API rejects missing CSRF tokens, untrusted origins and DNS rebinding hosts
       body: JSON.stringify({ path: path.join(temporary, 'new-repo') }),
     });
     assert.equal(response.status, 200);
-    const list = (await (await fetch(`${base}/api/repos`)).json()) as unknown[];
+    const list = (await (await fetch(`${base}/api/repos`)).json()) as {
+      id: string;
+      path: string;
+    }[];
     assert.equal(list.length, 1);
+    const removeUrl = `${base}/api/repos/${list[0].id}/remove`;
+    const rejectedHeaders: Record<string, string>[] = [
+      { 'Content-Type': 'application/json' },
+      {
+        'Content-Type': 'application/json',
+        'X-Branchlet-Token': token,
+        Origin: 'https://attacker.example',
+      },
+    ];
+    for (const headers of rejectedHeaders) {
+      assert.equal((await fetch(removeUrl, { method: 'POST', headers, body: '{}' })).status, 403);
+    }
+    assert.equal(((await (await fetch(`${base}/api/repos`)).json()) as unknown[]).length, 1);
+    const removed = await fetch(removeUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Branchlet-Token': token },
+      body: '{}',
+    });
+    assert.equal(removed.status, 200);
+    assert.deepEqual(await removed.json(), []);
+    await access(path.join(list[0].path, '.git'));
+    assert.equal(
+      (
+        await fetch(removeUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Branchlet-Token': token },
+          body: '{}',
+        })
+      ).status,
+      404,
+    );
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),
@@ -474,6 +600,16 @@ test('demo is richly populated and never resets existing user changes on reiniti
     const again = new GitService(temporary, true);
     await again.initialize();
     assert.equal(await readFile(path.join(repo.path, 'my-work.txt'), 'utf8'), 'preserved');
+    assert.equal(again.list()[0].isDemo, true);
+    assert.deepEqual(await again.remove(repo.id), []);
+    assert.equal(await readFile(path.join(repo.path, 'my-work.txt'), 'utf8'), 'preserved');
+    const dismissed = new GitService(temporary, true);
+    await dismissed.initialize();
+    assert.deepEqual(dismissed.list(), []);
+    assert.equal((await dismissed.open(repo.path)).id, repo.id);
+    const explicitlyRestored = new GitService(temporary, true);
+    await explicitlyRestored.initialize();
+    assert.equal(explicitlyRestored.list()[0].id, repo.id);
   } finally {
     const resolved = path.resolve(temporary);
     assert.ok(resolved.startsWith(path.resolve(os.tmpdir()) + path.sep));

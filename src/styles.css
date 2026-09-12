@@ -275,16 +275,27 @@ button:not(.file-select):not(.bl-graph-row) > svg {
   margin-top: 28px;
   margin-bottom: 9px;
 }
+.repo-list-row {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+}
+.repo-list-row:hover,
+.repo-list-row:focus-within,
+.repo-list-row.selected {
+  background: var(--hover);
+}
 .repo-list-item {
   display: flex;
   gap: 9px;
   align-items: center;
   text-align: left;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 0;
   background: transparent;
   color: #8995a0;
-  padding: 9px 13px;
+  padding: 9px 5px 9px 13px;
   font-size: 10px;
 }
 .repo-list-item > span:nth-child(2) {
@@ -294,8 +305,27 @@ button:not(.file-select):not(.bl-graph-row) > svg {
   flex: 1;
 }
 .repo-list-item:hover,
-.repo-list-item.selected {
-  color: #4f645c;
+.repo-list-row.selected .repo-list-item {
+  color: var(--green);
+}
+.repo-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  margin-right: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+}
+.repo-remove:hover:not(:disabled),
+.repo-remove:focus-visible {
+  color: #ce5a59;
+  background: #ce5a5912;
 }
 .repo-dot {
   height: 6px;
@@ -308,6 +338,7 @@ button:not(.file-select):not(.bl-graph-row) > svg {
   background: #5aaa87;
 }
 .demo-mini {
+  flex-shrink: 0;
   font-size: 8px;
   padding: 1px 4px;
   border-radius: 3px;

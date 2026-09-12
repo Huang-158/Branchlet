@@ -325,6 +325,45 @@
   overflow: hidden;
   margin-top: -8px;
 }
+.bl-dialog-browser-locations {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  background: #fff;
+  border-bottom: 1px solid #e8eeea;
+}
+.bl-dialog-browser-locations > span {
+  margin-right: 3px;
+  font-size: 11px;
+  color: #8b9a91;
+}
+.bl-dialog-location-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 29px;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #e2e9e5;
+  border-radius: 5px;
+  background: #fafcfb;
+  color: #70877a;
+  font-size: 11px !important;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.bl-dialog-location-button > svg {
+  flex-shrink: 0;
+}
+.bl-dialog-location-button:hover:not(:disabled),
+.bl-dialog-location-button.is-active {
+  border-color: #bbddcc;
+  background: #edf7f1;
+  color: #16866b;
+}
 .bl-dialog-browser-header {
   display: flex;
   gap: 8px;
@@ -333,6 +372,30 @@
   background: #f7f9f8;
   border-bottom: 1px solid #e8eeea;
   color: #7a8e82;
+}
+.bl-dialog-browser-header > .bl-dialog-icon-button {
+  width: 32px;
+  height: 32px;
+}
+.bl-dialog-browser-address {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 5px 8px;
+  font-size: 11px !important;
+}
+.bl-dialog-browser-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fcfdfc;
+  border-bottom: 1px solid #edf1ee;
+  color: #87978e;
+}
+.bl-dialog-browser-current > span:first-child {
+  font-size: 10px;
+  flex-shrink: 0;
 }
 .bl-dialog-icon-button {
   display: grid;
@@ -356,6 +419,7 @@
   overflow: hidden;
   white-space: nowrap;
   flex: 1;
+  min-width: 0;
 }
 .bl-dialog-directory-list {
   max-height: 205px;
@@ -459,6 +523,67 @@
   text-decoration: underline;
   color: #16866b;
   font-size: 11px;
+}
+[data-theme='dark'] .bl-dialog-browser,
+[data-theme='dark'] .bl-dialog-browser-locations,
+[data-theme='dark'] .bl-dialog-browser-current {
+  border-color: var(--border);
+}
+[data-theme='dark'] .bl-dialog-browser-locations {
+  background: var(--surface);
+}
+[data-theme='dark'] .bl-dialog-browser-current {
+  background: var(--sidebar);
+  color: var(--muted);
+}
+[data-theme='dark'] .bl-dialog-browser-locations > span {
+  color: var(--muted);
+}
+[data-theme='dark'] .bl-dialog-location-button {
+  background: var(--input);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme='dark'] .bl-dialog-location-button:hover:not(:disabled),
+[data-theme='dark'] .bl-dialog-location-button.is-active {
+  background: var(--green-soft);
+  border-color: var(--green);
+  color: #95c6af;
+}
+[data-theme='dark'] .bl-dialog-browser .bl-dialog-browser-address {
+  background: var(--input);
+  color: var(--text);
+  border-color: var(--border);
+}
+[data-theme='dark'] .bl-dialog-browser .bl-dialog-browser-address:focus {
+  border-color: var(--green);
+}
+[data-theme='dark'] .bl-dialog-browser-address::placeholder,
+[data-theme='dark'] .bl-dialog-browser .bl-dialog-browser-address:disabled {
+  color: var(--muted);
+}
+[data-theme='dark'] .bl-dialog-browser-path,
+[data-theme='dark'] .bl-dialog-directory > span {
+  color: var(--text);
+}
+[data-theme='dark'] .bl-dialog-directory:hover:not(:disabled) {
+  background: var(--hover);
+}
+[data-theme='dark'] .bl-dialog-use-folder,
+[data-theme='dark'] .bl-dialog-directory > small {
+  background: var(--green-soft);
+  border-color: var(--border);
+  color: #95c6af;
+}
+[data-theme='dark'] .bl-dialog-use-folder:hover:not(:disabled) {
+  background: var(--hover);
+}
+[data-theme='dark'] .bl-dialog-browser-error {
+  background: #3d2929;
+  color: #d59d92;
+}
+[data-theme='dark'] .bl-dialog-browser-error button {
+  color: #95c6af;
 }
 .bl-dialog-spinner {
   animation: bl-dialog-spin 1s linear infinite;

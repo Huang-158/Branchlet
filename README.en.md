@@ -20,7 +20,7 @@ Project repository: [Branchlet](https://github.com/Huang-158/Branchlet). GitHub'
 
 | Area                    | Implemented features                                                                                                              |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Repositories            | Open, initialize, clone, and switch repositories; browse local folders                                                            |
+| Repositories            | Open, initialize, clone, switch, and remove repositories; browse local folders, switch Windows drives, and navigate by path       |
 | Repository files        | Switch between list and tree views, navigate folders, and preview text files                                                      |
 | Changes                 | Staged, unstaged, untracked, and conflicted files; file-level staging and unstaging; confirmed discard; unified diffs and commits |
 | History                 | Graphs based on actual parent relationships; commit details; author/message/hash search; cherry-pick and revert                   |
@@ -63,6 +63,8 @@ Portable Windows ZIP files are written to `release/`. Tests use temporary real G
 ## Data and documentation
 
 The repository registry, demo workspace, and demo bare remote live in `.branchlet/` next to the application. Set `BRANCHLET_DATA_DIR` to use another directory. Example progress persists; external repositories remain at their original paths. The server listens on the local machine only.
+
+Use the sidebar's remove button to remove any repository, including the example, from the list. Files and Git history remain on disk. A removed example stays dismissed after restart; open its original path to use it again.
 
 - [Install, connect Git, and use the app](docs/GETTING-STARTED.en.md)
 - [Create releases, upload assets, and build packages](docs/RELEASING.en.md)

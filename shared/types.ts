@@ -88,5 +88,6 @@ export interface GitAction {
 export interface DirectoryListing {
   path: string;
   parent: string | null;
+  roots: { name: string; path: string }[];
   directories: { name: string; path: string; isRepository: boolean }[];
 }

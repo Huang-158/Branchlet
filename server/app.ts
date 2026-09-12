@@ -30,6 +30,7 @@ export async function createApp(options: AppOptions = {}) {
   );
   await service.initialize();
   const app = express();
+  const releases = createReleasesRouter(service);
   const token = randomBytes(32).toString('hex');
   app.disable('x-powered-by');
   app.use((req: Request, res: Response, next: NextFunction) => {
@@ -93,6 +94,12 @@ export async function createApp(options: AppOptions = {}) {
   app.post('/api/repos/clone', async (req, res) =>
     res.json(await service.clone(req.body?.url, req.body?.path)),
   );
+  app.post('/api/repos/:id/remove', async (req, res) => {
+    const id = String(req.params.id),
+      repositories = await service.remove(id);
+    releases.forgetRepository(id);
+    res.json(repositories);
+  });
   app.get('/api/filesystem', async (req, res) =>
     res.json(
       await service.filesystem(typeof req.query.path === 'string' ? req.query.path : undefined),
@@ -119,7 +126,7 @@ export async function createApp(options: AppOptions = {}) {
   app.post('/api/repos/:id/config', async (req, res) =>
     res.json(await service.setConfig(String(req.params.id), req.body ?? {})),
   );
-  app.use('/api', createReleasesRouter(service));
+  app.use('/api', releases);
   app.use('/api', createRepositoryFilesRouter(service));
   app.use('/api', (_req, res) => res.status(404).json({ error: '接口不存在。' }));
   const staticDir = options.staticDir ?? path.resolve('dist');

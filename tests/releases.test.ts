@@ -100,6 +100,25 @@ test('tokens are validated on explicit connect, remain private and disappear on 
   assert.equal(h.calls.length, 2);
 });
 
+test('forgetting a removed repository clears credentials without reading the removed registry entry', async () => {
+  const h = harness(() => Response.json([release]));
+  let removed = false;
+  const service = new ReleasesService(
+    {
+      get: (id) => {
+        if (removed) throw new ApiError(404, 'Repository removed');
+        return repositories.get(id);
+      },
+    },
+    { git, fetch: h.fetcher },
+  );
+  await service.connect(repo.id, TOKEN);
+  removed = true;
+  assert.deepEqual(service.forgetRepository(repo.id), { authenticated: false });
+  removed = false;
+  assert.equal((await service.list(repo.id)).authenticated, false);
+});
+
 test('draft creation checks the remote tag and preserves literal title/notes in structured JSON', async () => {
   const notes = '## Release\nA literal $(echo nope), `code`, and "quoted" text.';
   const h = harness((call) =>

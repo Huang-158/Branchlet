@@ -288,14 +288,19 @@ export default function App() {
       });
   }, []);
   useEffect(() => {
-    if (!activeId) return;
-    setLoading(true);
+    requestId.current++;
+    setLoading(!!activeId);
     setSnapshot(null);
+    setLoadError('');
     setSelectedFile(null);
     setSelectedCommit(null);
     setCommitDetail(null);
     setCommitMessage('');
     setFilter('');
+    if (!activeId) {
+      localStorage.removeItem('branchlet.repo');
+      return;
+    }
     localStorage.setItem('branchlet.repo', activeId);
     void refresh(activeId);
   }, [activeId, refresh]);
@@ -462,6 +467,43 @@ export default function App() {
     setRepoDialog(null);
     setPage('overview');
     notify(`已打开 ${repo.name}`);
+  }
+  function removeRepository(repo: Repository) {
+    setDialog({
+      title: repo.isDemo ? '移除示例仓库' : '移除仓库',
+      description: `将「${repo.name}」从仓库列表中移除，本地文件和 Git 历史会保留。${repo.isDemo ? '移除后，重启应用也不会自动添加此示例。' : '需要时可以通过原路径重新打开。'}`,
+      fields: [],
+      submitLabel: '确认移除',
+      danger: true,
+      onSubmit: async () => {
+        if (lock.current) throw new Error('请等待当前 Git 操作完成');
+        lock.current = true;
+        setBusy('repo-remove');
+        try {
+          const remaining = await api<Repository[]>(`/repos/${repo.id}/remove`, {
+            method: 'POST',
+            body: '{}',
+          });
+          setRepos(remaining);
+          if (activeRef.current === repo.id) {
+            requestId.current++;
+            const nextId = remaining[0]?.id || '';
+            activeRef.current = nextId;
+            setActiveId(nextId);
+            setSnapshot(null);
+            setPage('overview');
+          }
+          notify(
+            repo.isDemo
+              ? '示例仓库已移除，重启后不会自动添加'
+              : `已移除 ${repo.name}，本地文件已保留`,
+          );
+        } finally {
+          lock.current = false;
+          setBusy('');
+        }
+      },
+    });
   }
   function confirm(title: string, description: string, action: GitAction, danger = false) {
     setDialog({
@@ -699,16 +741,30 @@ export default function App() {
         </div>
         <div className="repo-list">
           {repos.map((repo) => (
-            <button
-              className={`repo-list-item ${repo.id === activeId ? 'selected' : ''}`}
+            <div
+              className={`repo-list-row ${repo.id === activeId ? 'selected' : ''}`}
               key={repo.id}
-              title={repo.path}
-              onClick={() => setActiveId(repo.id)}
             >
-              <span className={`repo-dot ${repo.id === activeId ? 'on' : ''}`} />
-              <span>{repo.name}</span>
-              {repo.isDemo && <span className="demo-mini">示例</span>}
-            </button>
+              <button
+                className="repo-list-item"
+                title={repo.path}
+                aria-current={repo.id === activeId ? 'true' : undefined}
+                onClick={() => setActiveId(repo.id)}
+              >
+                <span className={`repo-dot ${repo.id === activeId ? 'on' : ''}`} />
+                <span>{repo.name}</span>
+                {repo.isDemo && <span className="demo-mini">示例</span>}
+              </button>
+              <button
+                className="repo-remove"
+                title={repo.isDemo ? '移除示例仓库' : `移除仓库 ${repo.name}`}
+                aria-label={repo.isDemo ? '移除示例仓库' : `移除仓库 ${repo.name}`}
+                disabled={!!busy}
+                onClick={() => removeRepository(repo)}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           ))}
           <button className="add-repo" onClick={() => setRepoDialog('open')}>
             <Plus size={15} />

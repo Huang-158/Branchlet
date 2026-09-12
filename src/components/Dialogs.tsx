@@ -12,6 +12,8 @@ import {
   GitCommitHorizontal,
   GitPullRequest,
   Globe2,
+  HardDrive,
+  Home,
   Keyboard,
   Loader2,
   X,
@@ -194,10 +196,25 @@ export function RepositoryDialog({
   const [error, setError] = useState('');
   const [browserOpen, setBrowserOpen] = useState(false);
   const [listing, setListing] = useState<DirectoryListing | null>(null);
+  const [browserPath, setBrowserPath] = useState('');
   const [listingBusy, setListingBusy] = useState(false);
   const [listingError, setListingError] = useState('');
   const requestId = useRef(0);
   const copy = repositoryCopy[mode];
+  const roots = listing?.roots ?? [];
+  const currentRoot = [...roots]
+    .sort((left, right) => right.path.length - left.path.length)
+    .find((root) => {
+      const normalize = (value: string) => {
+        const normalized = value.replace(/\\/g, '/').replace(/\/+$/, '');
+        return /^[a-z]:/i.test(normalized) || normalized.startsWith('//')
+          ? normalized.toLowerCase()
+          : normalized;
+      };
+      const current = normalize(listing?.path ?? '');
+      const candidate = normalize(root.path);
+      return current === candidate || current.startsWith(`${candidate}/`);
+    });
 
   useEffect(() => {
     let active = true;
@@ -206,6 +223,7 @@ export function RepositoryDialog({
       .then((result) => {
         if (active && requestId.current === initialRequest) {
           setListing(result);
+          setBrowserPath(result.path);
           setPath((previous) => previous || (initialMode === 'open' ? result.path : ''));
         }
       })
@@ -226,13 +244,25 @@ export function RepositoryDialog({
       const result = await api<DirectoryListing>(
         `/filesystem${nextPath ? `?path=${encodeURIComponent(nextPath)}` : ''}`,
       );
-      if (currentRequest === requestId.current) setListing(result);
+      if (currentRequest === requestId.current) {
+        setListing(result);
+        setBrowserPath(result.path);
+      }
     } catch (cause) {
       if (currentRequest === requestId.current)
         setListingError(cause instanceof Error ? cause.message : '无法读取此文件夹');
     } finally {
       if (currentRequest === requestId.current) setListingBusy(false);
     }
+  }
+
+  function navigateToAddress() {
+    if (listingBusy || busy) return;
+    if (!browserPath.trim()) {
+      setListingError('请输入要前往的完整目录路径，例如 D:\\projects。');
+      return;
+    }
+    void browse(browserPath.trim());
   }
 
   async function submit(event: FormEvent) {
@@ -382,6 +412,38 @@ export function RepositoryDialog({
               aria-label="本地文件夹选择器"
               aria-busy={listingBusy}
             >
+              <div
+                className="bl-dialog-browser-locations"
+                role="group"
+                aria-label="切换磁盘或根目录"
+              >
+                <span>位置</span>
+                <button
+                  type="button"
+                  className="bl-dialog-location-button"
+                  disabled={listingBusy || busy}
+                  onClick={() => void browse()}
+                  title="返回用户主目录"
+                >
+                  <Home size={14} />
+                  主目录
+                </button>
+                {roots.map((root) => (
+                  <button
+                    key={root.path}
+                    type="button"
+                    className={`bl-dialog-location-button ${currentRoot?.path === root.path ? 'is-active' : ''}`}
+                    disabled={listingBusy || busy}
+                    aria-label={`打开${root.name}`}
+                    aria-pressed={currentRoot?.path === root.path}
+                    title={root.path}
+                    onClick={() => void browse(root.path)}
+                  >
+                    <HardDrive size={14} />
+                    {root.name}
+                  </button>
+                ))}
+              </div>
               <div className="bl-dialog-browser-header">
                 <button
                   type="button"
@@ -395,12 +457,38 @@ export function RepositoryDialog({
                 >
                   <ArrowUp size={16} />
                 </button>
-                <span className="bl-dialog-browser-path" title={listing?.path}>
-                  {listing?.path || '本地文件夹'}
-                </span>
-                {listingBusy && (
-                  <Loader2 size={15} className="bl-dialog-spinner" aria-label="正在读取文件夹" />
-                )}
+                <input
+                  className="bl-dialog-input bl-dialog-mono bl-dialog-browser-address"
+                  aria-label="浏览目录路径"
+                  aria-describedby={`${id}-browser-current`}
+                  value={browserPath}
+                  onChange={(event) => setBrowserPath(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      navigateToAddress();
+                    }
+                  }}
+                  placeholder={'输入完整路径，例如 D:\\projects'}
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={listingBusy || busy}
+                />
+                <button
+                  type="button"
+                  className="bl-dialog-icon-button"
+                  disabled={listingBusy || busy || !browserPath.trim()}
+                  aria-label={listingBusy ? '正在读取文件夹' : '前往路径'}
+                  title="前往路径 · Enter"
+                  onClick={navigateToAddress}
+                >
+                  {listingBusy ? (
+                    <Loader2 size={16} className="bl-dialog-spinner" />
+                  ) : (
+                    <ArrowRight size={16} />
+                  )}
+                </button>
               </div>
               {listingError && (
                 <div className="bl-dialog-browser-error" role="alert">
@@ -414,6 +502,12 @@ export function RepositoryDialog({
                   </button>
                 </div>
               )}
+              <div id={`${id}-browser-current`} className="bl-dialog-browser-current" role="status">
+                <span>{listingBusy ? '正在读取…' : '当前目录'}</span>
+                <span className="bl-dialog-browser-path" title={listing?.path}>
+                  {listing?.path || '请选择磁盘或输入目录路径'}
+                </span>
+              </div>
               <div className="bl-dialog-directory-list">
                 {!listingBusy && !listingError && listing?.directories.length === 0 && (
                   <div className="bl-dialog-browser-empty">
@@ -441,7 +535,7 @@ export function RepositoryDialog({
                 ))}
               </div>
               <div className="bl-dialog-browser-footer">
-                <span>点击文件夹进入，选择后使用路径</span>
+                <span>点击磁盘或文件夹进入，再选择目录</span>
                 <button
                   type="button"
                   className="bl-dialog-use-folder"

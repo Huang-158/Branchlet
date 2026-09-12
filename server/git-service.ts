@@ -9,6 +9,7 @@ import {
   writeFile,
   lstat,
   readlink,
+  unlink,
 } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -38,6 +39,14 @@ async function exists(file: string) {
   } catch {
     return false;
   }
+}
+
+function localPath(input: string) {
+  // Windows treats "D:" as the last working directory on that drive by default.
+  // A path picker should interpret a bare drive letter as its root instead.
+  return path.resolve(
+    process.platform === 'win32' && /^[a-z]:$/i.test(input) ? `${input}\\` : input,
+  );
 }
 
 export function parseStatus(
@@ -135,7 +144,14 @@ export class GitService {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT' && !(error instanceof SyntaxError))
         throw error;
     }
-    if (this.demo) {
+    let demoDismissed = false;
+    try {
+      await access(path.join(this.dataDir, 'demo-dismissed.json'));
+      demoDismissed = true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    if (this.demo && !demoDismissed) {
       const demoPath = await ensureDemo(this.dataDir);
       await this.open(demoPath, true);
     }
@@ -149,12 +165,27 @@ export class GitService {
     if (!repo) throw new ApiError(404, '未找到此仓库，请重新打开。');
     return repo;
   }
-  private async save() {
-    const pending = this.saveQueue.then(async () => {
-      const dest = path.join(this.dataDir, 'repos.json'),
-        temporary = `${dest}.${randomUUID()}.tmp`;
-      await writeFile(temporary, JSON.stringify(this.list(), null, 2), 'utf8');
+  private async writeRegistryFile(filename: string, value: unknown) {
+    const dest = path.join(this.dataDir, filename),
+      temporary = `${dest}.${randomUUID()}.tmp`;
+    try {
+      await writeFile(temporary, JSON.stringify(value, null, 2), 'utf8');
       await rename(temporary, dest);
+    } finally {
+      await unlink(temporary).catch(() => {});
+    }
+  }
+
+  private async updateRegistry(change: () => void | Promise<void>) {
+    const pending = this.saveQueue.then(async () => {
+      const previous = new Map(this.repositories);
+      try {
+        await change();
+        await this.writeRegistryFile('repos.json', this.list());
+      } catch (error) {
+        this.repositories = previous;
+        throw error;
+      }
     });
     this.saveQueue = pending.catch(() => {});
     await pending;
@@ -174,7 +205,7 @@ export class GitService {
   }
 
   async open(input: unknown, isDemo = false): Promise<Repository> {
-    const candidate = path.resolve(requireString(input, '仓库路径'));
+    const candidate = localPath(requireString(input, '仓库路径'));
     if (!(await exists(candidate))) throw new ApiError(404, '该目录不存在，请检查路径。');
     const top = (await runGit(candidate, ['rev-parse', '--show-toplevel'])).trim();
     const root = await realpath(top);
@@ -182,20 +213,33 @@ export class GitService {
       .update(process.platform === 'win32' ? root.toLowerCase() : root)
       .digest('hex')
       .slice(0, 16);
-    const previous = this.repositories.get(id);
-    const repo: Repository = {
-      id,
-      name: isDemo ? 'atlas-workspace' : path.basename(root),
-      path: root,
-      ...(isDemo || previous?.isDemo ? { isDemo: true } : {}),
-    };
-    this.repositories.set(id, repo);
-    await this.save();
-    return repo;
+    let repo: Repository;
+    await this.updateRegistry(() => {
+      const previous = this.repositories.get(id);
+      repo = {
+        id,
+        name: isDemo ? 'atlas-workspace' : path.basename(root),
+        path: root,
+        ...(isDemo || previous?.isDemo ? { isDemo: true } : {}),
+      };
+      this.repositories.set(id, repo);
+    });
+    return repo!;
+  }
+
+  async remove(id: string): Promise<Repository[]> {
+    await this.updateRegistry(async () => {
+      const repo = this.get(id);
+      // Write this first so a crash cannot silently enable automatic creation again.
+      // The repository directory and its Git history are deliberately preserved.
+      if (repo.isDemo) await this.writeRegistryFile('demo-dismissed.json', { dismissed: true });
+      this.repositories.delete(id);
+    });
+    return this.list();
   }
 
   async init(input: unknown): Promise<Repository> {
-    const root = path.resolve(requireString(input, '仓库路径'));
+    const root = localPath(requireString(input, '仓库路径'));
     await mkdir(root, { recursive: true });
     await runGit(root, ['init', '-b', 'main']);
     return this.open(root);
@@ -203,7 +247,7 @@ export class GitService {
 
   async clone(urlValue: unknown, input: unknown): Promise<Repository> {
     const url = safeRemoteUrl(urlValue),
-      root = path.resolve(requireString(input, '目标路径'));
+      root = localPath(requireString(input, '目标路径'));
     if ((await exists(root)) && (await readdir(root)).length > 0)
       throw new ApiError(400, '克隆目标必须是空目录或尚未创建的目录。');
     await mkdir(path.dirname(root), { recursive: true });
@@ -729,13 +773,29 @@ export class GitService {
   }
 
   async filesystem(input?: string): Promise<DirectoryListing> {
-    const root = path.resolve(input ? requireString(input, '目录路径') : os.homedir());
+    const root = localPath(input ? requireString(input, '目录路径') : os.homedir());
     let entries;
     try {
       entries = await readdir(root, { withFileTypes: true });
     } catch {
       throw new ApiError(400, '无法读取该目录，请检查路径与访问权限。');
     }
+    const rootCandidates =
+      process.platform === 'win32'
+        ? Array.from({ length: 26 }, (_, index) => `${String.fromCharCode(65 + index)}:\\`)
+        : ['/'];
+    const roots = (
+      await Promise.all(
+        rootCandidates.map(async (candidate) =>
+          (await exists(candidate))
+            ? {
+                name: process.platform === 'win32' ? `磁盘 ${candidate.slice(0, 2)}` : '文件系统',
+                path: candidate,
+              }
+            : null,
+        ),
+      )
+    ).filter((candidate): candidate is { name: string; path: string } => candidate !== null);
     const directories = await Promise.all(
       entries
         .filter(
@@ -752,6 +812,7 @@ export class GitService {
     return {
       path: root,
       parent: path.dirname(root) === root ? null : path.dirname(root),
+      roots,
       directories,
     };
   }

@@ -35,6 +35,8 @@ The first launch opens `atlas-workspace`, an independent real Git repository wit
 
 Pushing this example updates only its local demo remote. It does not publish to GitHub, and restarting preserves your practice work.
 
+To dismiss the example, click its remove button in the sidebar and confirm. It disappears from the repository list and stays dismissed after restart. Its files, commits, and practice progress remain on disk. To use it again, select its original path with **打开仓库** (Open repository); by default, it lives in `demo/` inside the application data directory.
+
 ## 3. Open, create, or clone a project
 
 | Your situation                             | Action                                                                                               |
@@ -44,7 +46,15 @@ Pushing this example updates only its local demo remote. It does not publish to 
 | You want a new empty project folder        | Enter a complete new folder path in **新建仓库**, then create files with your editor                 |
 | The project already exists remotely        | Choose **克隆仓库** (Clone repository), paste its clone URL, and choose a new or empty target folder |
 
+### Choose a drive or enter a path
+
+Click the folder browser beside the repository path, select an accessible Windows drive such as `C:\` or `D:\`, and navigate to your project folder. You can also enter a complete path such as `D:\projects` in the browser's address field and click the go button or press `Enter`, then select the current folder. If a drive or directory is unavailable, check that the disk is connected and your user account can access it.
+
+For a folder that does not exist yet, enter its complete new path directly in the repository path field, such as `D:\projects\my-project`. The folder browser selects existing directories.
+
 Check the path and current branch in the repository toolbar. Operations modify that project's real working tree, index, and Git history. The file browser is for reading; create and edit files in your usual editor.
+
+Every repository has a remove button in the sidebar. Removing it only deletes its entry from the application list; files and Git history remain on disk, and you can open the original path again. Removing the active repository switches to another repository. If the list becomes empty, you can still open, initialize, or clone a project.
 
 ### Set the commit author
 
