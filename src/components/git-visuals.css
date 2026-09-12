@@ -1,0 +1,431 @@
+.bl-graph {
+  --bl-graph-node-fill: #fff;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  color: #253449;
+  background: #fff;
+}
+[data-theme='dark'] .bl-graph {
+  --bl-graph-node-fill: var(--surface, #1c282e);
+}
+.bl-graph-lines {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bl-graph-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  height: var(--bl-graph-row-height, 66px);
+  min-width: 0;
+  margin: 0;
+  padding: 0 23px 0 var(--bl-graph-width, 86px);
+  text-align: left;
+  font-family: inherit;
+  border: 0;
+  border-bottom: 1px solid #f0f2f4;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.bl-graph [role='listitem']:last-child .bl-graph-row {
+  border-bottom: 0;
+}
+.bl-graph-row:hover {
+  background: #f8fafb;
+}
+.bl-graph-row-selected,
+.bl-graph-row-selected:hover {
+  background: #f2f8f5;
+}
+.bl-graph-row:focus-visible {
+  outline: 2px solid #16866b;
+  outline-offset: -3px;
+  border-radius: 3px;
+}
+.bl-graph-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.bl-graph-headline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.bl-graph-subject {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 550;
+  letter-spacing: -0.1px;
+  line-height: 1.35;
+  color: #253449;
+}
+.bl-graph-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  max-width: 150px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 2px 5px;
+  border: 1px solid #cae4d8;
+  border-radius: 4px;
+  color: #21846a;
+  background: #eaf5ee;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.bl-graph-ref svg {
+  flex-shrink: 0;
+}
+.bl-graph-ref-purple {
+  color: #8966c4;
+  border-color: #e4d9f6;
+  background: #f4effc;
+}
+.bl-graph-more-refs {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #8a94a2;
+}
+.bl-graph-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #96a0ad;
+  font-size: 10px;
+  line-height: 1;
+}
+.bl-graph-author {
+  max-width: 180px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #748090;
+}
+.bl-graph-meta time {
+  flex-shrink: 0;
+}
+.bl-graph-meta-dot {
+  padding: 0 2px;
+  color: #b9c1cb;
+}
+.bl-graph-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-size: 7px;
+  font-weight: 650;
+  color: #6a8c70;
+  background: #e9eee3;
+}
+.bl-graph-avatar-1 {
+  color: #8e789c;
+  background: #ede7f3;
+}
+.bl-graph-avatar-2 {
+  color: #758ca6;
+  background: #e5edf5;
+}
+.bl-graph-avatar-3 {
+  color: #a08a67;
+  background: #f2ecdf;
+}
+.bl-graph-hash {
+  flex-shrink: 0;
+  color: #9ba5b1;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+}
+.bl-graph-row-selected .bl-graph-hash {
+  color: #52967e;
+}
+.bl-graph-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 54px 24px;
+  color: #82909d;
+  text-align: center;
+}
+.bl-graph-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  margin-bottom: 5px;
+  border-radius: 17px;
+  color: #6d9b87;
+  background: #f0f7f3;
+}
+.bl-graph-empty strong {
+  color: #4d5c69;
+  font-size: 13px;
+  font-weight: 550;
+}
+.bl-graph-empty p {
+  margin: 0;
+  max-width: 320px;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.bl-diff {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  color: #344254;
+  background: #fff;
+  border: 1px solid #e9edf1;
+  border-radius: 7px;
+}
+.bl-diff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  min-height: 46px;
+  gap: 15px;
+  padding: 11px 16px;
+  border-bottom: 1px solid #e9edf1;
+  background: #fafbfc;
+}
+.bl-diff-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #617080;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px;
+}
+.bl-diff-file svg {
+  flex-shrink: 0;
+  color: #8494a3;
+}
+.bl-diff-file > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bl-diff-stats {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  font-size: 11px;
+}
+.bl-diff-add-stat {
+  color: #249368;
+}
+.bl-diff-del-stat {
+  color: #d17172;
+}
+.bl-diff-unified {
+  margin-left: 5px;
+  padding-left: 14px;
+  border-left: 1px solid #e0e5eb;
+  color: #97a0ac;
+  font-family: inherit;
+  font-size: 10px;
+}
+.bl-diff-scroll {
+  overflow: auto;
+  max-height: 590px;
+  min-height: 80px;
+  scrollbar-width: thin;
+  scrollbar-color: #d6dee5 transparent;
+}
+.bl-diff-scroll:focus-visible {
+  outline: 2px solid #16866b;
+  outline-offset: -2px;
+}
+.bl-diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  line-height: 22px;
+  tab-size: 4;
+}
+.bl-diff-line > td {
+  height: 22px;
+  padding-top: 0;
+  padding-bottom: 0;
+  border: 0;
+  vertical-align: top;
+}
+.bl-diff-line-number {
+  width: 40px;
+  min-width: 40px;
+  padding-left: 7px;
+  padding-right: 10px;
+  text-align: right;
+  color: #b1b9c2;
+  background: #fafbfc;
+  user-select: none;
+}
+.bl-diff-sign {
+  width: 26px;
+  min-width: 26px;
+  padding-left: 7px;
+  padding-right: 7px;
+  text-align: center;
+  color: #aab3bd;
+  user-select: none;
+}
+.bl-diff-code {
+  width: 100%;
+  padding-left: 3px;
+  padding-right: 25px;
+  white-space: pre;
+}
+.bl-diff-code code {
+  font-family: inherit;
+  font-size: inherit;
+}
+.bl-diff-line-addition {
+  color: #327c58;
+  background: #effaf2;
+}
+.bl-diff-line-addition .bl-diff-line-number {
+  color: #8bb89a;
+  background: #e5f5ea;
+}
+.bl-diff-line-addition .bl-diff-sign {
+  color: #43956a;
+}
+.bl-diff-line-deletion {
+  color: #a96062;
+  background: #fff0ef;
+}
+.bl-diff-line-deletion .bl-diff-line-number {
+  color: #cb9b9c;
+  background: #fbe5e5;
+}
+.bl-diff-line-deletion .bl-diff-sign {
+  color: #bf6a6c;
+}
+.bl-diff-line-hunk {
+  color: #7992ac;
+  background: #f1f6fc;
+}
+.bl-diff-line-hunk > td {
+  height: 28px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+.bl-diff-line-hunk .bl-diff-line-number {
+  background: #eaf1f9;
+}
+.bl-diff-line-metadata {
+  color: #94a0ad;
+  background: #fbfcfd;
+  font-size: 10px;
+}
+.bl-diff-line-metadata .bl-diff-line-number {
+  background: #f8fafb;
+}
+.bl-diff-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  padding: 35px 24px;
+  text-align: center;
+  color: #98a5b3;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.bl-diff-empty > svg {
+  margin-bottom: 5px;
+  color: #aab9c6;
+}
+.bl-diff-empty strong {
+  color: #647584;
+  font-size: 13px;
+  font-weight: 500;
+}
+.bl-diff-spinner {
+  animation: bl-diff-spin 0.9s linear infinite;
+}
+.bl-diff-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+@keyframes bl-diff-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bl-diff-spinner {
+    animation: none;
+  }
+  .bl-graph-row {
+    transition: none;
+  }
+}
+@media (max-width: 760px) {
+  .bl-graph-row {
+    gap: 10px;
+    padding-right: 12px;
+  }
+  .bl-graph-ref {
+    max-width: 90px;
+  }
+  .bl-graph-headline {
+    gap: 5px;
+  }
+  .bl-graph-subject {
+    font-size: 11px;
+  }
+  .bl-graph-hash {
+    font-size: 9px;
+  }
+  .bl-graph-author {
+    max-width: 90px;
+  }
+  .bl-diff-unified {
+    display: none;
+  }
+  .bl-diff-header {
+    padding: 10px 12px;
+  }
+  .bl-diff-line-number {
+    width: 31px;
+    min-width: 31px;
+    padding-right: 7px;
+  }
+}

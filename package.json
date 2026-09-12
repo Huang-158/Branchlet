@@ -1,0 +1,43 @@
+{
+  "name": "branchlet-git-gui",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Huang-158/Branchlet.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c green,cyan \"tsx watch server/index.ts\" \"vite --host 127.0.0.1\"",
+    "dev:server": "tsx watch server/index.ts",
+    "build": "tsc --noEmit && vite build",
+    "build:server": "node scripts/bundle-server.mjs",
+    "build:portable": "npm run build && npm run build:server",
+    "package:windows": "npm run build:portable && node scripts/package-windows.mjs",
+    "start": "tsx server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "concurrently": "^9.1.0",
+    "esbuild": "^0.28.2",
+    "prettier": "^3.9.6",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.0"
+  }
+}

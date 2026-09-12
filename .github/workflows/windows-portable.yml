@@ -1,0 +1,29 @@
+name: Build Windows portable package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run package:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Branchlet-Windows-Portable
+          path: |
+            release/*.zip
+            release/*.sha256
+          if-no-files-found: error
+          retention-days: 30
