@@ -85,7 +85,7 @@ Get-FileHash -LiteralPath '.\release\Branchlet-1.0.0-windows-x64.zip' -Algorithm
 Get-Content -LiteralPath '.\release\Branchlet-1.0.0-windows-x64.zip.sha256'
 ```
 
-Create the corresponding Release in [Huang-158/Branchlet](https://github.com/Huang-158/Branchlet/releases), upload the ZIP and `.sha256`, and describe the three installation steps: install Git for Windows, extract, and double-click Start.
+Create the corresponding Release in [Branchlet](https://github.com/Huang-158/Branchlet/releases), upload the ZIP and `.sha256`, and describe the three installation steps: install Git for Windows, extract, and double-click Start.
 
 The project also provides the manually triggered [Windows portable workflow](https://github.com/Huang-158/Branchlet/actions/workflows/windows-portable.yml) in `.github/workflows/windows-portable.yml`. With Actions enabled, it can run checks, tests, packaging, and save a workflow artifact. It **does not automatically publish a Release**. Download the workflow artifact, then upload its package to the intended Release.
 

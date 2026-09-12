@@ -7,14 +7,14 @@
 ## Windows：只需安装 Git
 
 1. 安装 [Git for Windows](https://git-scm.com/install/windows)，保留 Git Credential Manager，并让 Git 可供命令行及第三方程序使用。
-2. 获取 `Branchlet-<version>-windows-x64.zip` 并完整解压到有写权限的文件夹。可在 [Releases 页面](https://github.com/Huang-158/Branchlet/releases)查看是否已有发布包，或使用维护者提供的 ZIP。
+2. 从 [v1.0.0 发布页面](https://github.com/Huang-158/Branchlet/releases/tag/v1.0.0)下载 [Branchlet-1.0.0-windows-x64.zip](https://github.com/Huang-158/Branchlet/releases/download/v1.0.0/Branchlet-1.0.0-windows-x64.zip)，并完整解压到有写权限的文件夹。
 3. 双击解压目录中的 `Start-Branchlet.cmd`，浏览器会打开 [http://127.0.0.1:4317](http://127.0.0.1:4317)。
 
 便携包自带 Node.js 运行时和已构建应用，**无需手动安装 Node.js 或 npm**。第一次启动会创建可直接练习的真实示例仓库。安装、Git 登录、新建项目和第一次推送，请按 [入门指南](docs/GETTING-STARTED.zh-CN.md) 操作。
 
 使用完毕后双击同目录的 `Stop-Branchlet.cmd` 停止后台服务；关闭浏览器标签页不会停止服务。
 
-项目仓库：[Huang-158/Branchlet](https://github.com/Huang-158/Branchlet)。GitHub 自动生成的 “Source code” 压缩包属于源码，不是上述便携包。
+项目仓库：[Branchlet](https://github.com/Huang-158/Branchlet)。GitHub 自动生成的 “Source code” 压缩包属于源码，不是上述便携包。版本详情见 [v1.0.0 发布说明](docs/RELEASE-NOTES.v1.0.0.md)；可下载 [SHA-256 校验文件](https://github.com/Huang-158/Branchlet/releases/download/v1.0.0/Branchlet-1.0.0-windows-x64.zip.sha256)核对下载完整性。
 
 ## 功能
 

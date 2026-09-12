@@ -7,14 +7,14 @@
 ## Windows: install Git, then launch
 
 1. Install [Git for Windows](https://git-scm.com/install/windows). Keep Git Credential Manager enabled and make Git available to command-line and third-party applications.
-2. Obtain `Branchlet-<version>-windows-x64.zip` and extract the entire archive into a writable folder. Check the [Releases page](https://github.com/Huang-158/Branchlet/releases) for available packages, or use the ZIP supplied by the maintainer.
+2. Download [Branchlet-1.0.0-windows-x64.zip](https://github.com/Huang-158/Branchlet/releases/download/v1.0.0/Branchlet-1.0.0-windows-x64.zip) from the [v1.0.0 release page](https://github.com/Huang-158/Branchlet/releases/tag/v1.0.0) and extract the entire archive into a writable folder.
 3. Double-click `Start-Branchlet.cmd` in the extracted folder. Your browser opens [http://127.0.0.1:4317](http://127.0.0.1:4317).
 
 The portable package includes Node.js and the built application. **You do not need to install Node.js or npm yourself.** The first launch creates a real example repository to explore. Follow the [getting-started guide](docs/GETTING-STARTED.en.md) for installation, Git authentication, project creation, and your first push.
 
 Double-click `Stop-Branchlet.cmd` in the same folder to stop the background service. Closing the browser tab does not stop it.
 
-Project repository: [Huang-158/Branchlet](https://github.com/Huang-158/Branchlet). GitHub's automatic “Source code” archives are source distributions, not the portable package described above.
+Project repository: [Branchlet](https://github.com/Huang-158/Branchlet). GitHub's automatic “Source code” archives are source distributions, not the portable package described above. See the [v1.0.0 release notes](docs/RELEASE-NOTES.v1.0.0.md) for details, and download the [SHA-256 checksum file](https://github.com/Huang-158/Branchlet/releases/download/v1.0.0/Branchlet-1.0.0-windows-x64.zip.sha256) to verify the archive.
 
 ## Features
 

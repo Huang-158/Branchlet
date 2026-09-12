@@ -85,7 +85,7 @@ Get-FileHash -LiteralPath '.\release\Branchlet-1.0.0-windows-x64.zip' -Algorithm
 Get-Content -LiteralPath '.\release\Branchlet-1.0.0-windows-x64.zip.sha256'
 ```
 
-随后在 [Huang-158/Branchlet](https://github.com/Huang-158/Branchlet/releases) 创建对应 Release，上传 ZIP 和 `.sha256`，在发布说明中提供「安装 Git for Windows → 解压 → 双击 Start」三步说明。
+随后在 [Branchlet](https://github.com/Huang-158/Branchlet/releases) 创建对应 Release，上传 ZIP 和 `.sha256`，在发布说明中提供「安装 Git for Windows → 解压 → 双击 Start」三步说明。
 
 项目另提供手动触发的 `.github/workflows/windows-portable.yml`。Actions 可用时，可在 [Windows 便携包工作流](https://github.com/Huang-158/Branchlet/actions/workflows/windows-portable.yml)页面手动运行；它执行检查、测试、打包并保存工作流产物，**不会自动创建公开 Release**。下载工作流产物后，仍需选择实际 Release 并上传。
 
