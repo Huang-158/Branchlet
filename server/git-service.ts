@@ -49,6 +49,58 @@ function localPath(input: string) {
   );
 }
 
+function pathKey(value: string) {
+  return process.platform === 'win32' ? path.toNamespacedPath(value).toLowerCase() : value;
+}
+
+async function canonicalPath(value: string) {
+  try {
+    return await realpath(value);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    return value;
+  }
+}
+
+// This validation only reads paths and Git metadata. Keep it separate from init
+// so unsafe targets can be checked without ever creating directories or a .git.
+export async function validateRepositoryInitPath(input: unknown): Promise<string> {
+  const value = requireString(input, '仓库路径');
+  if (
+    !path.isAbsolute(value) ||
+    (process.platform === 'win32' && /^[\\/]+$/.test(path.parse(value).root))
+  )
+    throw new ApiError(400, '请填写项目文件夹的完整绝对路径，例如 D:\\projects\\my-project。');
+  const root = path.resolve(value),
+    canonical = await canonicalPath(root),
+    home = await canonicalPath(path.resolve(os.homedir()));
+  if (
+    pathKey(canonical) === pathKey(path.parse(canonical).root) ||
+    pathKey(canonical) === pathKey(home)
+  )
+    throw new ApiError(
+      400,
+      '不能直接在磁盘根目录或用户主目录初始化仓库。请先选择或新建一个专用的项目文件夹。',
+    );
+  if (await exists(root)) {
+    const existingMessage = '此文件夹已经是 Git 仓库，请使用“打开仓库”，无需重新初始化。';
+    try {
+      await lstat(path.join(root, '.git'));
+      throw new ApiError(400, existingMessage);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+    const gitDir = (
+      await runGit(root, ['rev-parse', '--absolute-git-dir'], { allowFailure: true })
+    ).trim();
+    // Git discovery can find a parent repository. Only the chosen directory's
+    // own metadata makes it an existing bare repository.
+    if (gitDir && pathKey(await canonicalPath(gitDir)) === pathKey(canonical))
+      throw new ApiError(400, existingMessage);
+  }
+  return root;
+}
+
 export function parseStatus(
   raw: string,
 ): Pick<GitStatus, 'staged' | 'unstaged' | 'untracked' | 'conflicted' | 'clean'> {
@@ -239,7 +291,7 @@ export class GitService {
   }
 
   async init(input: unknown): Promise<Repository> {
-    const root = localPath(requireString(input, '仓库路径'));
+    const root = await validateRepositoryInitPath(input);
     await mkdir(root, { recursive: true });
     await runGit(root, ['init', '-b', 'main']);
     return this.open(root);

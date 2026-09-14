@@ -247,6 +247,7 @@ export default function App() {
   const lock = useRef(false);
   const activeRef = useRef(activeId);
   activeRef.current = activeId;
+  const activeRepo = repos.find((repo) => repo.id === activeId);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const notify = useCallback((message: string, error = false) => {
@@ -461,7 +462,12 @@ export default function App() {
     setSidebarOpen(false);
   }
   async function added(repo: Repository) {
-    setRepos(await getRepos());
+    setRepos((previous) => {
+      const exists = previous.some((item) => item.id === repo.id);
+      return exists
+        ? previous.map((item) => (item.id === repo.id ? repo : item))
+        : [...previous, repo];
+    });
     setActiveId(repo.id);
     if (repo.id === activeRef.current) await refresh(repo.id);
     setRepoDialog(null);
@@ -939,19 +945,36 @@ export default function App() {
             </div>
           ) : !snapshot ? (
             <div className="panel">
-              <Empty
-                icon={FolderGit2}
-                title="从一个仓库开始"
-                description="打开已有项目，或新建你的第一个 Git 仓库。"
-              >
-                <div className="inline-actions">
-                  <Button onClick={() => setRepoDialog('open')} primary>
-                    打开仓库
-                  </Button>
-                  <Button onClick={() => setRepoDialog('init')}>新建仓库</Button>
-                  <Button onClick={() => setRepoDialog('clone')}>克隆仓库</Button>
-                </div>
-              </Empty>
+              {activeRepo && loadError ? (
+                <Empty
+                  icon={Info}
+                  title="仓库已打开，但暂时无法读取"
+                  description={`当前目录：${activeRepo.path}。请检查上方错误及所选路径。`}
+                >
+                  <div className="inline-actions">
+                    <Button onClick={() => setRepoDialog('open')} primary>
+                      选择其他仓库
+                    </Button>
+                    <Button onClick={() => removeRepository(activeRepo)} disabled={!!busy}>
+                      移除此仓库
+                    </Button>
+                  </div>
+                </Empty>
+              ) : (
+                <Empty
+                  icon={FolderGit2}
+                  title="从一个仓库开始"
+                  description="打开已有项目，或新建你的第一个 Git 仓库。"
+                >
+                  <div className="inline-actions">
+                    <Button onClick={() => setRepoDialog('open')} primary>
+                      打开仓库
+                    </Button>
+                    <Button onClick={() => setRepoDialog('init')}>新建仓库</Button>
+                    <Button onClick={() => setRepoDialog('clone')}>克隆仓库</Button>
+                  </div>
+                </Empty>
+              )}
             </div>
           ) : (
             <>
@@ -2337,9 +2360,7 @@ export default function App() {
         <RepositoryDialog
           initialMode={repoDialog}
           onClose={() => setRepoDialog(null)}
-          onAdded={(repo) => {
-            void added(repo);
-          }}
+          onAdded={added}
         />
       )}
       {dialog && <ActionDialog {...dialog} onClose={() => setDialog(null)} />}

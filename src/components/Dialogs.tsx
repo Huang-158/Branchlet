@@ -167,7 +167,7 @@ const repositoryCopy = {
     title: '开启新的项目',
     description: '在本地文件夹中初始化一个 Git 仓库。',
     path: '新仓库路径',
-    hint: '可以选择现有文件夹，也可以输入新文件夹的完整路径。',
+    hint: '填写项目文件夹的完整路径，例如 D:\\projects\\my-app。所选文件夹本身就是仓库，不会自动创建子文件夹。',
     submit: '创建仓库',
   },
   clone: {
@@ -186,11 +186,17 @@ export function RepositoryDialog({
 }: {
   initialMode: RepositoryMode;
   onClose: () => void;
-  onAdded: (repo: Repository) => void;
+  onAdded: (repo: Repository) => void | Promise<void>;
 }) {
   const id = useId();
   const [mode, setMode] = useState<RepositoryMode>(initialMode);
-  const [path, setPath] = useState('');
+  const [paths, setPaths] = useState<Record<RepositoryMode, string>>({
+    open: '',
+    init: '',
+    clone: '',
+  });
+  const path = paths[mode];
+  const setPath = (value: string) => setPaths((previous) => ({ ...previous, [mode]: value }));
   const [url, setUrl] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -224,7 +230,6 @@ export function RepositoryDialog({
         if (active && requestId.current === initialRequest) {
           setListing(result);
           setBrowserPath(result.path);
-          setPath((previous) => previous || (initialMode === 'open' ? result.path : ''));
         }
       })
       .catch(() => {
@@ -286,7 +291,7 @@ export function RepositoryDialog({
           ...(mode === 'clone' ? { url: url.trim() } : {}),
         }),
       });
-      onAdded(result);
+      await onAdded(result);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : '仓库操作失败，请重试。');
     } finally {
@@ -556,7 +561,15 @@ export function RepositoryDialog({
           {mode === 'init' && (
             <div className="bl-dialog-note">
               <GitBranch size={16} />
-              <span>初始化后，可以在「工作区」中暂存文件并创建第一次提交。</span>
+              <div>
+                <strong>实际初始化位置</strong>
+                <code className="bl-dialog-init-target">
+                  {path.trim() || '请先选择或输入项目文件夹'}
+                </code>
+                <span>
+                  首次提交前没有历史记录。创建后在项目中添加文件，再到「工作区」暂存并提交。
+                </span>
+              </div>
             </div>
           )}
           {error && (

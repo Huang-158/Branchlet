@@ -319,6 +319,12 @@
   border-color: #f7dfd8;
   color: #bd6352;
 }
+.bl-dialog-init-target {
+  display: block;
+  margin: 5px 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
 .bl-dialog-browser {
   border: 1px solid #e2e9e5;
   border-radius: 9px;

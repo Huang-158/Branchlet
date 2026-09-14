@@ -52,6 +52,10 @@ Click the folder browser beside the repository path, select an accessible Window
 
 For a folder that does not exist yet, enter its complete new path directly in the repository path field, such as `D:\projects\my-project`. The folder browser selects existing directories.
 
+**新建仓库** (New repository) has its own path field and does not inherit the default folder from Open repository. Enter an absolute path to a dedicated project folder, such as `D:\projects\my-app`. Branchlet initializes Git **in that folder itself**, without adding a project subfolder, and creates the folder if it does not exist. Relative paths, drive roots, and your home directory are rejected. For an existing Git repository, use **打开仓库** (Open repository).
+
+An empty repository has no commit history immediately after creation; this is normal. Add project files in your editor, then refresh **工作区更改** (Changes), stage the files, and make your first commit to populate the history.
+
 Check the path and current branch in the repository toolbar. Operations modify that project's real working tree, index, and Git history. The file browser is for reading; create and edit files in your usual editor.
 
 Every repository has a remove button in the sidebar. Removing it only deletes its entry from the application list; files and Git history remain on disk, and you can open the original path again. Removing the active repository switches to another repository. If the list becomes empty, you can still open, initialize, or clone a project.
@@ -151,18 +155,19 @@ Theme and active-repository preferences use browser storage. Operation history l
 
 ## 8. Troubleshooting
 
-| Symptom                              | What to do                                                                                                                                                           |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Git cannot be found                  | Install Git for Windows, verify `git --version` in a new terminal, and reopen the launcher                                                                           |
-| Node.js is not installed             | Use the portable package, or let the source launcher prepare its runtime; the latter needs initial internet access                                                   |
-| Launcher fails                       | Fully extract into a writable folder; inspect the launcher or `.branchlet/server-error.log`, or run `Start-Branchlet.cmd -Foreground` to see service output directly |
-| Page does not open                   | Check that the service is running, open `http://127.0.0.1:4317`, and check for a port conflict                                                                       |
-| Commit needs an author               | Set the repository's author name and email in Settings                                                                                                               |
-| Remote authentication fails          | Complete system GCM/SSH authentication first; author settings and the Release token do not replace Git authentication                                                |
-| Pull cannot fast-forward             | Fetch and inspect both histories, then integrate according to the project's workflow                                                                                 |
-| A recently edited file is absent     | Refresh, check `.gitignore`, and verify the selected repository and branch                                                                                           |
-| Release returns 403/404              | Check repository selection, token permissions, and organization approval; see the release guide                                                                      |
-| Session expires after server restart | Fully reload the browser page; in-app `Ctrl+R` only refreshes repository data                                                                                        |
-| Git reports dubious ownership        | Check ownership and trust settings; trust only repositories you have verified                                                                                        |
+| Symptom                                | What to do                                                                                                                                                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Git cannot be found                    | Install Git for Windows, verify `git --version` in a new terminal, and reopen the launcher                                                                                                                                               |
+| Node.js is not installed               | Use the portable package, or let the source launcher prepare its runtime; the latter needs initial internet access                                                                                                                       |
+| Launcher fails                         | Fully extract into a writable folder; inspect the launcher or `.branchlet/server-error.log`, or run `Start-Branchlet.cmd -Foreground` to see service output directly                                                                     |
+| Page does not open                     | Check that the service is running, open `http://127.0.0.1:4317`, and check for a port conflict                                                                                                                                           |
+| Commit needs an author                 | Set the repository's author name and email in Settings                                                                                                                                                                                   |
+| Remote authentication fails            | Complete system GCM/SSH authentication first; author settings and the Release token do not replace Git authentication                                                                                                                    |
+| Pull cannot fast-forward               | Fetch and inspect both histories, then integrate according to the project's workflow                                                                                                                                                     |
+| A recently edited file is absent       | Refresh, check `.gitignore`, and verify the selected repository and branch                                                                                                                                                               |
+| Git output exceeds 4 MB after creation | Check the repository path in the toolbar. If your entire home directory was accidentally initialized, remove its sidebar entry and open the correct project folder. Removal preserves files and Git history; do not simply delete `.git` |
+| Release returns 403/404                | Check repository selection, token permissions, and organization approval; see the release guide                                                                                                                                          |
+| Session expires after server restart   | Fully reload the browser page; in-app `Ctrl+R` only refreshes repository data                                                                                                                                                            |
+| Git reports dubious ownership          | Check ownership and trust settings; trust only repositories you have verified                                                                                                                                                            |
 
 See [Contributing](../CONTRIBUTING.en.md) for development configuration and the [UI specification](UI-DESIGN.md) for design details (Chinese).
